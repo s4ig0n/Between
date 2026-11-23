@@ -1,0 +1,113 @@
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { buildMockPlan } from '../src/model/mockData';
+import { formatDuration, formatLongDate, formatShortWeekday, formatTime, toDateKey } from '../src/logic/dates';
+import { agendaFor, nextUp, upcomingAppointments } from '../src/logic/schedule';
+import { useBetweenStore } from '../src/store/useBetweenStore';
+import { AgendaRow } from '../src/ui/AgendaRow';
+import { Logo } from '../src/ui/Logo';
+import { NextUpCard } from '../src/ui/NextUpCard';
+import { colors, radius, type } from '../src/ui/theme';
+
+/** Re-render every minute so "next up" and overdue state stay current. */
+function useNow(intervalMs = 60_000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+export default function TodayScreen() {
+  const now = useNow();
+  const dayKey = toDateKey(now);
+  // Phase 1: synthetic plan only. Rebuilt per day so sample dates stay relative to today.
+  const plan = useMemo(() => buildMockPlan(now), [dayKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { log, snoozes, hydrated, toggle, markDone, snooze } = useBetweenStore();
+
+  const agenda = useMemo(() => agendaFor(plan, now, log), [plan, now, log]);
+  const upcoming = useMemo(() => upcomingAppointments(plan, now, 7), [plan, now]);
+  const next = nextUp(agenda, now, snoozes);
+
+  if (!hydrated) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <ActivityIndicator color={colors.white} size="large" accessibilityLabel="Loading" />
+      </View>
+    );
+  }
+
+  const rows = [
+    ...agenda.map((item) => ({
+      item,
+      when: undefined as string | undefined,
+      subtitle: item.kind === 'appointment' ? formatDuration(item.durationMinutes) : undefined,
+    })),
+    ...upcoming.map((a) => ({
+      item: { ...a, done: false },
+      when: formatShortWeekday(a.start),
+      subtitle: formatTime(a.start),
+    })),
+  ];
+
+  return (
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Logo />
+        <View style={styles.header}>
+          <Text style={styles.date}>{formatLongDate(now)}</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            Today
+          </Text>
+        </View>
+
+        <View style={styles.card}>
+          {next && (
+            <NextUpCard
+              occurrence={next}
+              now={now}
+              onDone={() => markDone(next, 'app')}
+              onLater={() => snooze(next.id, 60)}
+            />
+          )}
+
+          <View style={next ? styles.listAfterCard : undefined}>
+            {rows.length === 0 ? (
+              <Text style={styles.empty}>Nothing scheduled today. Enjoy the rest.</Text>
+            ) : (
+              rows.map(({ item, when, subtitle }, i) => (
+                <AgendaRow
+                  key={item.id}
+                  item={item}
+                  when={when}
+                  subtitle={subtitle}
+                  last={i === rows.length - 1}
+                  onToggle={item.kind === 'exercise' ? () => toggle(item) : undefined}
+                />
+              ))
+            )}
+          </View>
+        </View>
+
+        <Text style={styles.footnote}>Sample data for demonstration. Not a real patient.</Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.blue },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  content: { padding: 20, paddingBottom: 48, gap: 20 },
+  header: { marginTop: 8 },
+  date: { fontSize: type.body, color: colors.onBlueMuted },
+  title: { fontSize: type.title, fontWeight: '800', color: colors.white, letterSpacing: -0.5 },
+  card: { backgroundColor: colors.white, borderRadius: radius.card, padding: 16 },
+  listAfterCard: { marginTop: 12 },
+  empty: { fontSize: type.body, color: colors.muted, paddingVertical: 24, textAlign: 'center' },
+  footnote: { fontSize: type.small - 2, color: colors.onBlueMuted, textAlign: 'center' },
+});
