@@ -8,9 +8,11 @@ import {
   CALENDAR_TITLE,
   desiredEvents,
   diffEvents,
+  isOurEvent,
   syncWindow,
   type DesiredEvent,
 } from './calendarPlan';
+import { addDays } from '../logic/dates';
 
 export const calendarSupported = Platform.OS !== 'web';
 
@@ -127,9 +129,27 @@ async function doSync(plan: CarePlan, knownCalendarId: string | undefined, now: 
   return { calendarId, created: toCreate.length, updated: toUpdate.length, deleted: toDelete.length };
 }
 
-/** Delete the Between calendar and everything in it. Other calendars are untouched. */
-export async function removeBetweenCalendar(knownCalendarId?: string): Promise<void> {
-  if (!calendarSupported || (await getCalendarPermission()) !== 'granted') return;
-  const cal = await findBetweenCalendar(knownCalendarId);
-  if (cal) await Calendar.deleteCalendarAsync(cal.id);
+/**
+ * Take the plan out of the phone's calendar. If the Between calendar holds
+ * only this app's events it is deleted outright; if the patient added events
+ * of their own to it, only the app's events are removed.
+ */
+export async function removeBetweenCalendar(calendarId: string | undefined): Promise<void> {
+  if (!calendarId || !calendarSupported || (await getCalendarPermission()) !== 'granted') return;
+  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+  if (!calendars.some((c) => c.id === calendarId)) return;
+
+  const now = new Date();
+  const events = (
+    await Calendar.getEventsAsync([calendarId], addDays(now, -366), addDays(now, 366))
+  ).filter((e) => e.calendarId === calendarId);
+  const foreign = events.filter((e) => !isOurEvent(e));
+
+  if (foreign.length === 0) {
+    await Calendar.deleteCalendarAsync(calendarId);
+    return;
+  }
+  for (const e of events) {
+    if (isOurEvent(e)) await Calendar.deleteEventAsync(e.id);
+  }
 }
