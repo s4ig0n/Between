@@ -14,7 +14,7 @@ another app.
 | --- | --- | --- |
 | 1 | Scaffold, data model, Today screen on sample data with check-off | Done |
 | 2 | Local reminders with "Mark done" and "In 1 hour" actions | Done |
-| 3 | Sync exercises and visits into a dedicated "Between" calendar | Planned |
+| 3 | Sync exercises and visits into a dedicated "Between" calendar | Done |
 | 4 | Epic on FHIR sandbox login and appointment import | Planned |
 | 5 | Design notes: clinic dashboard, backend, needs check-in, Siri | Planned |
 
@@ -68,6 +68,28 @@ background handler, and then `ACTIONS_OPEN_APP` in
 `src/notifications/native.ts` can go back to `false` so the patient never
 leaves the lock screen.
 
+## Try the calendar
+
+1. On the Today screen, tap **Add to my calendar** and allow calendar access.
+2. Open your phone's Calendar app. A calendar named **Between** now holds the
+   next 14 days of exercise sessions and visits.
+3. Reopen Between or tap **Update now** as often as you like: events that are
+   already there are matched and left alone, so nothing is duplicated.
+4. **Remove** deletes the Between calendar again. Your other calendars are
+   never changed.
+
+How it avoids duplicates and stays safe:
+
+- Events are matched by title and start time inside the app's own calendar,
+  so a re-sync (or a reinstall) finds them again without a stored id list.
+- Every event the app writes ends with "Added by the Between app." The app
+  only ever updates or deletes events carrying that line, so anything you add
+  to the Between calendar by hand is left alone.
+- Past days are kept as a record. Calendar events have no alarms, because the
+  reminders already alert you.
+- Expo Go only supports the older `expo-calendar/legacy` API, so that is what
+  `src/calendar/native.ts` uses for now.
+
 ## Tests and type-check
 
 ```powershell
@@ -79,8 +101,9 @@ npm run typecheck
 ```
 
 The tests cover the pure logic: expanding a care plan into a daily agenda, the
-completion log, snoozes, reminder scheduling and action handling, and the
-adherence / "needs a check-in" rules.
+completion log, snoozes, reminder scheduling and action handling, calendar
+event planning and de-duplication, and the adherence / "needs a check-in"
+rules.
 
 ## Configuration
 
@@ -95,6 +118,7 @@ app/                 Screens (expo-router)
 src/model/           Types and the synthetic sample plan
 src/logic/           Pure, tested logic: dates, schedule, completion, adherence
 src/notifications/   Reminder planning (pure) and the expo-notifications glue
+src/calendar/        Calendar event planning (pure) and the expo-calendar glue
 src/store/           Persisted app state (zustand + AsyncStorage)
 src/ui/              Theme and components
 __tests__/           Jest tests
