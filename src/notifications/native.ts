@@ -77,6 +77,31 @@ export async function requestReminderPermission(): Promise<ReminderPermission> {
   );
 }
 
+/**
+ * Development aid: fire a real reminder for `reminder` in a few seconds so the
+ * actions can be tried without waiting for the scheduled time. Its identifier
+ * has no reminder prefix, so syncing never cancels it.
+ */
+export async function sendTestReminder(reminder: Omit<DesiredReminder, 'fireAt' | 'identifier'>, seconds = 10) {
+  if (!notificationsSupported) return;
+  await configureNotifications();
+  await Notifications.scheduleNotificationAsync({
+    identifier: `test:${reminder.data.occurrenceId}:${Date.now()}`,
+    content: {
+      title: reminder.title,
+      body: reminder.body,
+      data: reminder.data,
+      categoryIdentifier: REMINDER_CATEGORY,
+      sound: true,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds,
+      channelId: CHANNEL_ID,
+    },
+  });
+}
+
 let queue: Promise<unknown> = Promise.resolve();
 
 /**

@@ -8,6 +8,7 @@ import { useReminders } from '../src/notifications/useReminders';
 import { useBetweenStore } from '../src/store/useBetweenStore';
 import { usePlan } from '../src/store/usePlan';
 import { AgendaRow } from '../src/ui/AgendaRow';
+import { DevTestReminder } from '../src/ui/DevTestReminder';
 import { Logo } from '../src/ui/Logo';
 import { NextUpCard } from '../src/ui/NextUpCard';
 import { RemindersBanner } from '../src/ui/RemindersBanner';
@@ -95,6 +96,7 @@ export default function TodayScreen() {
         </View>
 
         <RemindersBanner permission={permission} onEnable={requestPermission} />
+        {permission === 'granted' && <DevTestReminder agenda={agenda} />}
 
         <Text style={styles.footnote}>Sample data for demonstration. Not a real patient.</Text>
       </ScrollView>
