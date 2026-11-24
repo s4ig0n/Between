@@ -60,12 +60,13 @@ To preview in a desktop browser, press `w` in the Expo terminal, or run
 Real reminders are scheduled for each exercise session over the next 3 days
 and are re-synced every time the app opens, so they never duplicate.
 
-**Known limit in Expo Go:** the actions run without opening the app. That works
-while the app is in the background, but if you have swiped it away completely,
-iOS and Android do not run the app's code and the tap is not recorded. A later
-phase with an EAS development build adds a background handler to fix this. To
-make the actions always work now, at the cost of opening the app for a moment,
-set `ACTIONS_OPEN_APP = true` in `src/notifications/native.ts`.
+**For now, the actions open the app.** Expo Go cannot run the app's code in
+the background once the app has been swiped away, so a silent tap could be
+lost and the session would stay unchecked. Opening the app for a moment makes
+sure every tap is recorded. A later phase with an EAS development build adds a
+background handler, and then `ACTIONS_OPEN_APP` in
+`src/notifications/native.ts` can go back to `false` so the patient never
+leaves the lock screen.
 
 ## Tests and type-check
 
