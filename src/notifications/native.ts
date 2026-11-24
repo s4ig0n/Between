@@ -22,9 +22,10 @@ export const CHANNEL_ID = 'reminders';
  * the OS does not run it and the tap is lost.
  * true: always applied, but the app opens briefly.
  *
- * A dev build with a background notification task can make `false` reliable.
+ * Set to true while running in Expo Go so no tap is lost. A dev build with a
+ * background notification task can make `false` reliable.
  */
-export const ACTIONS_OPEN_APP = false;
+export const ACTIONS_OPEN_APP = true;
 
 let configured: Promise<void> | undefined;
 
