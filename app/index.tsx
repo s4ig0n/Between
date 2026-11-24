@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { buildMockPlan } from '../src/model/mockData';
-import { formatDuration, formatLongDate, formatShortWeekday, formatTime, toDateKey } from '../src/logic/dates';
+import { formatDuration, formatLongDate, formatShortWeekday, formatTime } from '../src/logic/dates';
 import { agendaFor, nextUp, upcomingAppointments } from '../src/logic/schedule';
+import { useReminders } from '../src/notifications/useReminders';
 import { useBetweenStore } from '../src/store/useBetweenStore';
+import { usePlan } from '../src/store/usePlan';
 import { AgendaRow } from '../src/ui/AgendaRow';
 import { Logo } from '../src/ui/Logo';
 import { NextUpCard } from '../src/ui/NextUpCard';
+import { RemindersBanner } from '../src/ui/RemindersBanner';
 import { colors, radius, type } from '../src/ui/theme';
 
 /** Re-render every minute so "next up" and overdue state stay current. */
@@ -23,9 +25,8 @@ function useNow(intervalMs = 60_000) {
 
 export default function TodayScreen() {
   const now = useNow();
-  const dayKey = toDateKey(now);
-  // Phase 1: synthetic plan only. Rebuilt per day so sample dates stay relative to today.
-  const plan = useMemo(() => buildMockPlan(now), [dayKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const plan = usePlan(now);
+  const { permission, requestPermission } = useReminders(plan);
 
   const { log, snoozes, hydrated, toggle, markDone, snooze } = useBetweenStore();
 
@@ -92,6 +93,8 @@ export default function TodayScreen() {
             )}
           </View>
         </View>
+
+        <RemindersBanner permission={permission} onEnable={requestPermission} />
 
         <Text style={styles.footnote}>Sample data for demonstration. Not a real patient.</Text>
       </ScrollView>
