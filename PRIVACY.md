@@ -4,7 +4,7 @@ This is a plain-language description of what the Between app stores and where.
 It is a working draft for a prototype. **It is not legal advice** and has not
 been reviewed by a lawyer.
 
-## Current version (phases 1–2)
+## Current version (phases 1–3)
 
 - **No real patient data.** The care plan, patient name and appointments are
   synthetic sample data built into the app.
@@ -18,15 +18,23 @@ been reviewed by a lawyer.
   go through any server. The text names the exercise (for example "Time for
   your knee exercises") and **can be read on the lock screen** by anyone holding
   the phone. You can hide previews in the phone's notification settings.
-- **What leaves the phone:** nothing. There is no server, no account, no
-  analytics SDK and no third-party tracker.
+- **Calendar:** only if you tap "Add to my calendar" and allow access. The
+  app writes exercise sessions and visits (title, time, exercise steps, visit
+  location) into a separate calendar named "Between". It reads only that
+  calendar's events, to avoid duplicates. It does not read or change your
+  other calendars.
+  - **iPhone:** the Between calendar is created in the same account as your
+    default calendar. If that is iCloud, Apple syncs it to your other Apple
+    devices and iCloud, outside the app's control.
+  - **Android:** the Between calendar is a local calendar on the phone and is
+    not attached to a Google account.
+  - "Remove" deletes the Between calendar and its events from the phone.
+- **What leaves the phone:** nothing is sent by the app. There is no server,
+  no account, no analytics SDK and no third-party tracker. (The calendar note
+  above is the one case where the phone's own sync may copy data.)
 
 ## Planned changes (not built yet)
 
-- **Calendar (phase 3):** with permission, the app writes exercise sessions and
-  visits into a separate "Between" calendar on the phone. Depending on your
-  phone's settings, that calendar may sync to your iCloud or Google account,
-  which is outside the app's control.
 - **Epic sandbox (phase 4):** sign-in uses SMART on FHIR with PKCE and no
   client secret. Access tokens are stored only in the phone's secure storage
   (Keychain on iOS, Keystore-backed storage on Android) and are never logged.
