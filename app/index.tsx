@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useCalendarSync } from '../src/calendar/useCalendarSync';
 import { formatDuration, formatLongDate, formatShortWeekday, formatTime } from '../src/logic/dates';
 import { agendaFor, nextUp, upcomingAppointments } from '../src/logic/schedule';
 import { useReminders } from '../src/notifications/useReminders';
 import { useBetweenStore } from '../src/store/useBetweenStore';
 import { usePlan } from '../src/store/usePlan';
 import { AgendaRow } from '../src/ui/AgendaRow';
+import { CalendarCard } from '../src/ui/CalendarCard';
 import { DevTestReminder } from '../src/ui/DevTestReminder';
 import { Logo } from '../src/ui/Logo';
 import { NextUpCard } from '../src/ui/NextUpCard';
@@ -28,6 +30,7 @@ export default function TodayScreen() {
   const now = useNow();
   const plan = usePlan(now);
   const { permission, requestPermission } = useReminders(plan);
+  const cal = useCalendarSync(plan);
 
   const { log, snoozes, hydrated, toggle, markDone, snooze } = useBetweenStore();
 
@@ -96,6 +99,15 @@ export default function TodayScreen() {
         </View>
 
         <RemindersBanner permission={permission} onEnable={requestPermission} />
+        <CalendarCard
+          permission={cal.permission}
+          status={cal.status}
+          enabled={cal.enabled}
+          lastSyncedAt={cal.lastSyncedAt}
+          onEnable={cal.enable}
+          onDisable={cal.disable}
+          onSync={cal.syncNow}
+        />
         {permission === 'granted' && <DevTestReminder agenda={agenda} />}
 
         <Text style={styles.footnote}>Sample data for demonstration. Not a real patient.</Text>
