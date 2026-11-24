@@ -67,15 +67,20 @@ export function eventKey(e: { title: string; startDate: string | Date }): string
 
 const same = (a?: string | null, b?: string | null) => (a ?? '') === (b ?? '');
 
+/** Events this app wrote carry the footer line in their notes. */
+export function isOurEvent(e: Pick<ExistingEvent, 'notes'>): boolean {
+  return (e.notes ?? '').includes(EVENT_FOOTER);
+}
+
 /**
  * What to change in the Between calendar so it matches `desired`. Only events
- * that start inside the sync window are considered, so past days are kept as
- * a record.
+ * this app wrote that start inside the sync window are considered: anything
+ * the patient added by hand, and past days, are never touched.
  */
 export function diffEvents(existing: ExistingEvent[], desired: DesiredEvent[], window: { from: Date; to: Date }) {
   const inWindow = existing.filter((e) => {
     const t = new Date(e.startDate).getTime();
-    return t >= window.from.getTime() && t < window.to.getTime();
+    return isOurEvent(e) && t >= window.from.getTime() && t < window.to.getTime();
   });
 
   const byKey = new Map<string, ExistingEvent>();

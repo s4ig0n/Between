@@ -112,6 +112,19 @@ describe('diffEvents', () => {
     expect(diffEvents([past, ...asExisting()], desired, window).toDelete).toEqual([]);
   });
 
+  it('never touches events the patient added themselves', () => {
+    const mine: ExistingEvent = {
+      id: 'mine',
+      title: 'Knee exercises',
+      startDate: at(6, 8).toISOString(),
+      endDate: at(6, 9).toISOString(),
+      notes: 'my own note',
+    };
+    const d = diffEvents([mine, ...asExisting()], desired, window);
+    expect(d).toEqual({ toCreate: [], toUpdate: [], toDelete: [] });
+    expect(diffEvents([mine], [], window).toDelete).toEqual([]);
+  });
+
   it('removes events no longer in the plan', () => {
     const d = diffEvents(asExisting(), desired.slice(0, 3), window);
     expect(d.toDelete).toEqual(['ev3', 'ev4']);
