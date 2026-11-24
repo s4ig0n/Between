@@ -27,7 +27,13 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Between adds your exercise sessions and therapy visits to a separate Between calendar."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false
