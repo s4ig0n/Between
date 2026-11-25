@@ -15,7 +15,7 @@ another app.
 | 1 | Scaffold, data model, Today screen on sample data with check-off | Done |
 | 2 | Local reminders with "Mark done" and "In 1 hour" actions | Done |
 | 3 | Sync exercises and visits into a dedicated "Between" calendar | Done |
-| 4 | Epic on FHIR sandbox login and appointment import | Planned |
+| 4 | Epic on FHIR sandbox login and appointment import | Built, needs redirect URI registered in Epic |
 | 5 | Design notes: clinic dashboard, backend, needs check-in, Siri | Planned |
 
 ## Run it on your phone with Expo Go
@@ -90,6 +90,54 @@ How it avoids duplicates and stays safe:
 - Expo Go only supports the older `expo-calendar/legacy` API, so that is what
   `src/calendar/native.ts` uses for now.
 
+## Epic on FHIR sandbox
+
+Between can import appointments for one of Epic's published **sandbox test
+patients**. It never talks to a production Epic system: `src/fhir/config.ts`
+refuses any base URL outside `https://fhir.epic.com/interconnect-fhir-oauth/`.
+
+How it signs in: SMART on FHIR standalone launch, authorization code with
+PKCE (S256), as a public client with no client secret. Endpoints are read from
+the sandbox's `.well-known/smart-configuration`. The access token is kept only
+in SecureStore and is never logged.
+
+### 1. Register the redirect URI in Epic
+
+Epic only sends the patient back to a redirect URI registered on the app at
+fhir.epic.com, and it must match exactly. Add both of these:
+
+- **Expo Go:** `exp://<your computer's Wi-Fi IP>:8081/--/auth/epic`, for
+  example `exp://192.168.1.11:8081/--/auth/epic`. The Between card shows
+  the exact value in development under "Redirect URI to register in Epic".
+  It changes if your computer's IP changes.
+- **Dev builds later:** `between://auth/epic`
+
+Changes to an Epic sandbox app can take a while to take effect.
+
+If Expo picks the wrong network adapter (common on Windows with WSL or
+VirtualBox installed), force your Wi-Fi IP before starting:
+
+```powershell
+$env:REACT_NATIVE_PACKAGER_HOSTNAME = "192.168.1.11"; npx expo start
+```
+
+### 2. Connect
+
+1. Put your non-production client ID in `.env` (see `.env.example`).
+2. On the Today screen, tap **Connect to Epic sandbox**.
+3. Sign in with one of the MyChart test patients listed in Epic's sandbox
+   documentation on fhir.epic.com.
+4. The test patient's appointments replace the sample visits on Today and in
+   the Between calendar. Exercises stay on the sample plan, because the Epic
+   APIs used here (Patient, Appointment, Practitioner, Location) carry no
+   home exercise program.
+
+The token lasts about an hour. Imported appointments stay on the phone after
+that, and the card offers **Sign in again** to check for changes.
+**Disconnect** deletes the token and the imported appointments.
+
+With no client ID set, the Epic card is hidden and the app runs on sample data.
+
 ## Tests and type-check
 
 ```powershell
@@ -102,8 +150,9 @@ npm run typecheck
 
 The tests cover the pure logic: expanding a care plan into a daily agenda, the
 completion log, snoozes, reminder scheduling and action handling, calendar
-event planning and de-duplication, and the adherence / "needs a check-in"
-rules.
+event planning and de-duplication, the adherence / "needs a check-in" rules,
+and the Epic config guard, SMART discovery checks, token session handling and
+FHIR-to-Appointment mapping.
 
 ## Configuration
 
@@ -119,6 +168,7 @@ src/model/           Types and the synthetic sample plan
 src/logic/           Pure, tested logic: dates, schedule, completion, adherence
 src/notifications/   Reminder planning (pure) and the expo-notifications glue
 src/calendar/        Calendar event planning (pure) and the expo-calendar glue
+src/fhir/            Epic sandbox: config, SMART sign-in, FHIR client, mapping
 src/store/           Persisted app state (zustand + AsyncStorage)
 src/ui/              Theme and components
 __tests__/           Jest tests
