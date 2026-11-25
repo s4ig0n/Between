@@ -10,6 +10,9 @@ import { useBetweenStore } from '../src/store/useBetweenStore';
 import { usePlan } from '../src/store/usePlan';
 import { AgendaRow } from '../src/ui/AgendaRow';
 import { CalendarCard } from '../src/ui/CalendarCard';
+import { EpicCard } from '../src/ui/EpicCard';
+import { epicRedirectUri } from '../src/fhir';
+import { useEpic } from '../src/fhir/useEpic';
 import { DevTestReminder } from '../src/ui/DevTestReminder';
 import { Logo } from '../src/ui/Logo';
 import { NextUpCard } from '../src/ui/NextUpCard';
@@ -31,6 +34,7 @@ export default function TodayScreen() {
   const plan = usePlan(now);
   const { permission, requestPermission } = useReminders(plan);
   const cal = useCalendarSync(plan);
+  const epic = useEpic();
 
   const { log, snoozes, hydrated, toggle, markDone, snooze } = useBetweenStore();
 
@@ -99,6 +103,17 @@ export default function TodayScreen() {
         </View>
 
         <RemindersBanner permission={permission} onEnable={requestPermission} />
+        {epic.available && (
+          <EpicCard
+            epic={epic.epic}
+            status={epic.status}
+            error={epic.error}
+            redirectUri={epicRedirectUri()}
+            onConnect={epic.connect}
+            onRefresh={epic.refresh}
+            onDisconnect={epic.disconnect}
+          />
+        )}
         <CalendarCard
           permission={cal.permission}
           status={cal.status}
@@ -110,7 +125,11 @@ export default function TodayScreen() {
         />
         {permission === 'granted' && <DevTestReminder agenda={agenda} />}
 
-        <Text style={styles.footnote}>Sample data for demonstration. Not a real patient.</Text>
+        <Text style={styles.footnote}>
+          {epic.epic.connected
+            ? 'Visits from the Epic sandbox (test patient). Exercises are sample data.'
+            : 'Sample data for demonstration. Not a real patient.'}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
