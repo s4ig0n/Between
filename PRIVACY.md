@@ -4,7 +4,7 @@ This is a plain-language description of what the Between app stores and where.
 It is a working draft for a prototype. **It is not legal advice** and has not
 been reviewed by a lawyer.
 
-## Current version (phases 1–3)
+## Current version (phases 1–4)
 
 - **No real patient data.** The care plan, patient name and appointments are
   synthetic sample data built into the app.
@@ -29,16 +29,28 @@ been reviewed by a lawyer.
   - **Android:** the Between calendar is a local calendar on the phone and is
     not attached to a Google account.
   - "Remove" deletes the Between calendar and its events from the phone.
-- **What leaves the phone:** nothing is sent by the app. There is no server,
-  no account, no analytics SDK and no third-party tracker. (The calendar note
-  above is the one case where the phone's own sync may copy data.)
+- **Epic sandbox (optional):** only if you tap "Connect to Epic sandbox".
+  Development uses Epic's published **test patients only**, and the app
+  refuses to connect to anything but Epic's public sandbox.
+  - Sign-in happens on Epic's own page. The app never sees the password.
+  - The access token is stored only in the phone's secure storage (Keychain on
+    iOS, Keystore-backed storage on Android), is not backed up to other
+    devices, and is never logged.
+  - The app reads the patient's name and appointments (time, length, status,
+    visit type, clinician and location names). The appointments and name are
+    kept in the app's local storage so they still show after the token
+    expires.
+  - "Disconnect" deletes the token, the name and the imported appointments.
+  - **Before any real patient data:** imported records would need encrypted
+    storage, not plain local storage, plus a review of HIPAA obligations and
+    Epic's production terms.
+- **What leaves the phone:** the app talks only to Epic's sandbox, and only
+  when you connect. There is no Between server, no account, no analytics SDK
+  and no third-party tracker. (The calendar note above is the other case,
+  where the phone's own sync may copy data.)
 
 ## Planned changes (not built yet)
 
-- **Epic sandbox (phase 4):** sign-in uses SMART on FHIR with PKCE and no
-  client secret. Access tokens are stored only in the phone's secure storage
-  (Keychain on iOS, Keystore-backed storage on Android) and are never logged.
-  Development uses Epic's published test patients only.
 - **Clinic dashboard and backend (phase 5):** design only for now. Any version
   that shares data with a clinic needs a fresh privacy review first, covering
   HIPAA business associate terms and the FTC Health Breach Notification Rule
