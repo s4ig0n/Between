@@ -16,7 +16,7 @@ another app.
 | 2 | Local reminders with "Mark done" and "In 1 hour" actions | Done |
 | 3 | Sync exercises and visits into a dedicated "Between" calendar | Done |
 | 4 | Epic on FHIR sandbox login and appointment import | Done (tested in Expo Go on Android) |
-| 5 | Design notes: clinic dashboard, backend, needs check-in, Siri | Planned |
+| 5 | Design notes: clinic dashboard, backend, needs check-in, Siri | Written, see [design/](design/README.md) |
 
 ## Run it on your phone with Expo Go
 
@@ -188,6 +188,8 @@ src/fhir/            Epic sandbox: config, SMART sign-in, FHIR client, mapping
 src/store/           Persisted app state (zustand + AsyncStorage)
 src/ui/              Theme and components
 __tests__/           Jest tests
+docs/                GitHub Pages: the Epic sign-in hand-off page
+design/              Phase 5 design notes (plans only)
 ```
 
 ## Accessibility
