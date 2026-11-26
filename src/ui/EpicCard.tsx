@@ -85,7 +85,7 @@ export function EpicCard({ epic, status, error, redirectUri, onConnect, onRefres
                 accessible
                 accessibilityLabel={`${a.title}, ${when}${a.location ? `, ${a.location}` : ''}${past ? ', past visit' : ''}`}
               >
-                <View style={{ flex: 1 }}>
+                <View style={styles.fill}>
                   <Text style={styles.itemTitle}>{a.title}</Text>
                   <Text style={styles.itemMeta}>{when}</Text>
                   {a.location ? <Text style={styles.itemMeta}>{a.location}</Text> : null}
@@ -102,10 +102,11 @@ export function EpicCard({ epic, status, error, redirectUri, onConnect, onRefres
         style={styles.demoRow}
         accessibilityRole="switch"
         accessibilityState={{ checked: !!epic.demoDates }}
-        accessibilityLabel="Demo: show sandbox visits as upcoming"
+        aria-checked={!!epic.demoDates}
+        accessibilityLabel="Demo: show as upcoming"
         accessibilityHint="Moves the test patient's past visits into the coming days on the Today screen and calendar"
       >
-        <View style={{ flex: 1 }}>
+        <View style={styles.fill}>
           <Text style={styles.demoTitle}>Demo: show as upcoming</Text>
           <Text style={styles.itemMeta}>
             Moves these test visits into the coming days on Today and in your calendar, marked "demo date".
@@ -131,9 +132,9 @@ export function EpicCard({ epic, status, error, redirectUri, onConnect, onRefres
           label={status === 'expired' ? 'Sign in again' : 'Update'}
           onPress={status === 'expired' ? onConnect : onRefresh}
           disabled={busy}
-          style={{ flex: 1 }}
+          style={styles.half}
         />
-        <Button label="Disconnect" onPress={confirmDisconnect} disabled={busy} variant="secondary" style={{ flex: 1 }} />
+        <Button label="Disconnect" onPress={confirmDisconnect} disabled={busy} variant="secondary" style={styles.half} />
       </View>
     </View>
   );
@@ -204,7 +205,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   demoTitle: { fontSize: type.small, fontWeight: '700', color: colors.navy },
-  row: { flexDirection: 'row', gap: 12 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  half: { flexGrow: 1, flexBasis: 140 },
+  fill: { flex: 1 },
   button: {
     marginTop: 6,
     minHeight: TAP,

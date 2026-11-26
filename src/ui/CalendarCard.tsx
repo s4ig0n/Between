@@ -75,8 +75,8 @@ export function CalendarCard({ permission, status, enabled, lastSyncedAt, onEnab
         <Text style={[styles.body, status === 'error' && styles.error]}>{statusText}</Text>
       </View>
       <View style={styles.row}>
-        <Button label="Update now" onPress={onSync} disabled={busy} style={{ flex: 1 }} />
-        <Button label="Remove" onPress={confirmRemove} disabled={busy} variant="secondary" style={{ flex: 1 }} />
+        <Button label="Update now" onPress={onSync} disabled={busy} style={styles.half} />
+        <Button label="Remove" onPress={confirmRemove} disabled={busy} variant="secondary" style={styles.half} />
       </View>
     </View>
   );
@@ -120,7 +120,8 @@ const styles = StyleSheet.create({
   body: { fontSize: type.small, color: colors.muted, lineHeight: 25 },
   error: { color: '#A3261A' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  row: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
+  half: { flexGrow: 1, flexBasis: 140 },
   button: {
     marginTop: 6,
     minHeight: TAP,
