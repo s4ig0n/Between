@@ -1,8 +1,10 @@
 import * as AuthSession from 'expo-auth-session';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 
 import { EPIC_SCOPES, type EpicConfig } from './config';
 import { fetchSmartEndpoints } from './discovery';
+import { APP_SCHEME_REDIRECT, EPIC_REDIRECT_PATH, expoGoRedirectUri } from './redirect';
 import { sessionFromTokenResponse, type EpicSession } from './session';
 import { saveSession } from './sessionStore';
 
@@ -13,9 +15,16 @@ WebBrowser.maybeCompleteAuthSession();
  * exp:// address that includes the computer's network address; in a dev build
  * it is between://auth/epic. Either way it must be registered exactly in the
  * Epic app settings.
+ *
+ * Expo Go is detected explicitly: on Android, makeRedirectUri was observed to
+ * return between://auth/epic inside Expo Go, which Expo Go cannot receive, so
+ * the sign-in never returned to the app.
  */
 export function epicRedirectUri(): string {
-  return AuthSession.makeRedirectUri({ scheme: 'between', path: 'auth/epic' });
+  const inExpoGo =
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+  const expoGo = inExpoGo ? expoGoRedirectUri(Constants.linkingUri) : undefined;
+  return expoGo ?? AuthSession.makeRedirectUri({ scheme: 'between', path: EPIC_REDIRECT_PATH, native: APP_SCHEME_REDIRECT });
 }
 
 export type SignInResult = { type: 'success'; session: EpicSession } | { type: 'cancelled' };
@@ -32,6 +41,10 @@ export async function signInWithEpic(config: EpicConfig): Promise<SignInResult> 
     tokenEndpoint: endpoints.tokenEndpoint,
   };
   const redirectUri = epicRedirectUri();
+  if (__DEV__) {
+    // Helps match the URI registered in Epic. Contains no secrets.
+    console.log(`Epic sign-in redirect: ${redirectUri} (${Constants.executionEnvironment})`);
+  }
 
   const request = new AuthSession.AuthRequest({
     clientId: config.clientId,
