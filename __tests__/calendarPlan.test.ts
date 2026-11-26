@@ -1,5 +1,6 @@
 import type { CarePlan } from '../src/model/types';
 import {
+  DEMO_NOTE,
   desiredEvents,
   diffEvents,
   EVENT_FOOTER,
@@ -63,6 +64,15 @@ describe('desiredEvents', () => {
     expect(desired[0].notes).toBe(`Heel slides. About 10 minutes.\n\n${EVENT_FOOTER}`);
     expect(desired[1].endDate).toEqual(at(6, 14, 45));
     expect(desired[1].location).toBe('Sample Rehab Clinic');
+  });
+
+  it('labels demo-dated sandbox visits in the event notes', () => {
+    const demoPlan: CarePlan = {
+      ...plan,
+      appointments: [{ ...plan.appointments[0], demo: { originalStart: '2023-06-01T19:00:00.000Z' } }],
+    };
+    const visit = desiredEvents(demoPlan, NOW, 14).find((e) => e.title === 'Physical therapy visit');
+    expect(visit?.notes).toBe(`${DEMO_NOTE}\n\n${EVENT_FOOTER}`);
   });
 
   it('starts at the beginning of today so earlier sessions today stay in the calendar', () => {

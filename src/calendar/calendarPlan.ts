@@ -5,6 +5,7 @@ import { appointmentsBetween, exerciseOccurrencesBetween } from '../logic/schedu
 export const CALENDAR_TITLE = 'Between';
 export const CALENDAR_COLOR = '#1F3B95';
 export const EVENT_FOOTER = 'Added by the Between app.';
+export const DEMO_NOTE = 'Epic sandbox test visit. Date moved for a demo; not a real appointment.';
 
 /** How far ahead to keep the calendar filled. Re-synced each time the app opens. */
 export const CALENDAR_HORIZON_DAYS = 14;
@@ -47,7 +48,11 @@ export function desiredEvents(plan: CarePlan, now: Date, days = CALENDAR_HORIZON
     title: a.title,
     startDate: a.start,
     endDate: addMinutes(a.start, a.durationMinutes),
-    notes: [a.appointment.practitioner && `With ${a.appointment.practitioner}`, EVENT_FOOTER]
+    notes: [
+      a.appointment.practitioner && `With ${a.appointment.practitioner}`,
+      a.appointment.demo && DEMO_NOTE,
+      EVENT_FOOTER,
+    ]
       .filter(Boolean)
       .join('\n\n'),
     location: a.appointment.location,
