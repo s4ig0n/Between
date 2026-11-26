@@ -1,5 +1,6 @@
 import * as AuthSession from 'expo-auth-session';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { isRunningInExpoGo } from 'expo';
+import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 
 import { EPIC_SCOPES, type EpicConfig } from './config';
@@ -18,13 +19,21 @@ WebBrowser.maybeCompleteAuthSession();
  *
  * Expo Go is detected explicitly: on Android, makeRedirectUri was observed to
  * return between://auth/epic inside Expo Go, which Expo Go cannot receive, so
- * the sign-in never returned to the app.
+ * the sign-in never returned to the app. The scheme check in expoGoRedirectUri
+ * keeps a non-exp:// address from being used here.
  */
 export function epicRedirectUri(): string {
-  const inExpoGo =
-    Constants.executionEnvironment === ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
-  const expoGo = inExpoGo ? expoGoRedirectUri(Constants.linkingUri) : undefined;
-  return expoGo ?? AuthSession.makeRedirectUri({ scheme: 'between', path: EPIC_REDIRECT_PATH, native: APP_SCHEME_REDIRECT });
+  // Expo Go on Android (SDK 58) reports its execution environment as "bare",
+  // so ask Expo directly whether this is Expo Go.
+  if (isRunningInExpoGo()) {
+    const hostUri = Constants.expoConfig?.hostUri;
+    const expoGo =
+      expoGoRedirectUri(Constants.linkingUri) ??
+      expoGoRedirectUri(Constants.experienceUrl) ??
+      (hostUri ? expoGoRedirectUri(`exp://${hostUri}`) : undefined);
+    if (expoGo) return expoGo;
+  }
+  return AuthSession.makeRedirectUri({ scheme: 'between', path: EPIC_REDIRECT_PATH, native: APP_SCHEME_REDIRECT });
 }
 
 export type SignInResult = { type: 'success'; session: EpicSession } | { type: 'cancelled' };
@@ -43,7 +52,9 @@ export async function signInWithEpic(config: EpicConfig): Promise<SignInResult> 
   const redirectUri = epicRedirectUri();
   if (__DEV__) {
     // Helps match the URI registered in Epic. Contains no secrets.
-    console.log(`Epic sign-in redirect: ${redirectUri} (${Constants.executionEnvironment})`);
+    console.log(
+      `Epic sign-in redirect: ${redirectUri} (expoGo=${isRunningInExpoGo()}, env=${Constants.executionEnvironment}, linkingUri=${Constants.linkingUri})`,
+    );
   }
 
   const request = new AuthSession.AuthRequest({
