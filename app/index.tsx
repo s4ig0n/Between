@@ -36,7 +36,7 @@ export default function TodayScreen() {
   const cal = useCalendarSync(plan);
   const epic = useEpic();
 
-  const { log, snoozes, hydrated, toggle, markDone, snooze } = useBetweenStore();
+  const { log, snoozes, hydrated, toggle, markDone, snooze, setEpic } = useBetweenStore();
 
   const agenda = useMemo(() => agendaFor(plan, now, log), [plan, now, log]);
   const upcoming = useMemo(() => upcomingAppointments(plan, now, 7), [plan, now]);
@@ -50,16 +50,20 @@ export default function TodayScreen() {
     );
   }
 
+  // Sandbox visits moved forward for a demo are always labeled as such.
+  const demoNote = (a: { appointment: { demo?: unknown } }) => (a.appointment.demo ? ' · demo date' : '');
+
   const rows = [
     ...agenda.map((item) => ({
       item,
       when: undefined as string | undefined,
-      subtitle: item.kind === 'appointment' ? formatDuration(item.durationMinutes) : undefined,
+      subtitle:
+        item.kind === 'appointment' ? `${formatDuration(item.durationMinutes)}${demoNote(item)}` : undefined,
     })),
     ...upcoming.map((a) => ({
       item: { ...a, done: false },
       when: formatShortWeekday(a.start),
-      subtitle: formatTime(a.start),
+      subtitle: `${formatTime(a.start)}${demoNote(a)}`,
     })),
   ];
 
@@ -112,6 +116,7 @@ export default function TodayScreen() {
             onConnect={epic.connect}
             onRefresh={epic.refresh}
             onDisconnect={epic.disconnect}
+            onToggleDemo={(on) => setEpic({ demoDates: on })}
           />
         )}
         <CalendarCard
