@@ -15,7 +15,7 @@ another app.
 | 1 | Scaffold, data model, Today screen on sample data with check-off | Done |
 | 2 | Local reminders with "Mark done" and "In 1 hour" actions | Done |
 | 3 | Sync exercises and visits into a dedicated "Between" calendar | Done |
-| 4 | Epic on FHIR sandbox login and appointment import | Built, needs redirect URI registered in Epic |
+| 4 | Epic on FHIR sandbox login and appointment import | Done (tested in Expo Go on Android) |
 | 5 | Design notes: clinic dashboard, backend, needs check-in, Siri | Planned |
 
 ## Run it on your phone with Expo Go
