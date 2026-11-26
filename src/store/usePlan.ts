@@ -15,5 +15,7 @@ export function usePlan(now: Date) {
   const epic = useBetweenStore((s) => s.epic);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const base = useMemo(() => buildMockPlan(now), [dayKey]);
-  return useMemo(() => withImportedAppointments(base, epic), [base, epic]);
+  // Demo dates are placed relative to the moment the plan is built, once per day.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => withImportedAppointments(base, epic, now), [base, epic]);
 }

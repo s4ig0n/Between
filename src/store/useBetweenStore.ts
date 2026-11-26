@@ -27,6 +27,8 @@ export interface EpicImportState {
   lastImportedAt?: string;
   /** Appointment resources Epic returned on the last import, before mapping. */
   returned?: number;
+  /** Sandbox demo: move past test visits into the coming days. Off by default. */
+  demoDates?: boolean;
 }
 
 const emptyEpic = (): EpicImportState => ({ connected: false, appointments: [] });

@@ -24,6 +24,16 @@ describe('withImportedAppointments', () => {
     expect(plan.patientName).toBe('Camila Lopez');
   });
 
+  it('moves past sandbox visits forward only when demo dates are on', () => {
+    const past = { ...epicAppt, start: new Date(2023, 5, 1, 15).toISOString() };
+    const now = new Date(2026, 9, 6, 9);
+    const off = withImportedAppointments(mock, { connected: true, appointments: [past] }, now);
+    expect(off.appointments).toEqual([past]);
+    const on = withImportedAppointments(mock, { connected: true, appointments: [past], demoDates: true }, now);
+    expect(new Date(on.appointments[0].start)).toEqual(new Date(2026, 9, 6, 15));
+    expect(on.appointments[0].demo?.originalStart).toBe(past.start);
+  });
+
   it('shows no visits rather than sample ones when Epic returns none', () => {
     expect(withImportedAppointments(mock, { connected: true, appointments: [] }).appointments).toEqual([]);
   });
