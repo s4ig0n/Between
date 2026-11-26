@@ -143,7 +143,8 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.blue },
   center: { alignItems: 'center', justifyContent: 'center' },
-  content: { padding: 20, paddingBottom: 48, gap: 20 },
+  // Readable column on tablets and desktop browsers; full width on phones.
+  content: { padding: 16, paddingBottom: 48, gap: 20, width: '100%', maxWidth: 640, alignSelf: 'center' },
   header: { marginTop: 8 },
   date: { fontSize: type.body, color: colors.onBlueMuted },
   title: { fontSize: type.title, fontWeight: '800', color: colors.white, letterSpacing: -0.5 },
