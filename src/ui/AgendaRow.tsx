@@ -57,8 +57,18 @@ export function AgendaRow({ item, when, subtitle, onToggle, last }: Props) {
       style={({ pressed }) => [rowStyle, pressed && styles.pressed]}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: item.done }}
+      // Web needs the explicit ARIA attribute to announce checked state.
+      aria-checked={item.done}
       accessibilityLabel={`${item.title}, ${time}`}
-      accessibilityHint={item.done ? 'Double tap to mark as not done' : 'Double tap to mark as done'}
+      accessibilityHint={item.done ? 'Mark as not done' : 'Mark as done'}
+      // Checkboxes toggle with Space on a keyboard; Enter is handled by Pressable.
+      onKeyDown={(e) => {
+        const key = (e.nativeEvent as { key?: string }).key;
+        if (key === ' ' || key === 'Spacebar') {
+          (e as unknown as { preventDefault?: () => void }).preventDefault?.();
+          onToggle();
+        }
+      }}
     >
       {body}
     </Pressable>
@@ -75,7 +85,7 @@ const styles = StyleSheet.create({
   },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth * 2, borderBottomColor: colors.line },
   pressed: { backgroundColor: colors.cardSoft },
-  time: { width: 92, fontSize: type.small, color: colors.muted, fontVariant: ['tabular-nums'] },
+  time: { width: 80, fontSize: type.small, color: colors.muted, fontVariant: ['tabular-nums'] },
   main: { flex: 1 },
   title: { fontSize: type.body, fontWeight: '700', color: colors.navy },
   titleDone: { textDecorationLine: 'line-through', color: colors.muted, fontWeight: '500' },
