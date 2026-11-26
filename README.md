@@ -140,6 +140,14 @@ $env:REACT_NATIVE_PACKAGER_HOSTNAME = "192.168.1.11"; npx expo start
    APIs used here (Patient, Appointment, Practitioner, Location) carry no
    home exercise program.
 
+**What the sandbox actually returns:** test patient Camila Maria Lopez has 2
+appointments, both in the past, so with real dates the Today screen shows no
+visits. The Epic card lists the imported visits with their real dates, marked
+"Past". For demos, turn on **Demo: show as upcoming** on the card: past test
+visits move into the coming days (keeping their order and time of day), and
+each one is labeled "demo date" on Today and in the calendar event. It is off
+by default and only applies to the Epic sandbox import.
+
 The token lasts about an hour. Imported appointments stay on the phone after
 that, and the card offers **Sign in again** to check for changes.
 **Disconnect** deletes the token and the imported appointments.
