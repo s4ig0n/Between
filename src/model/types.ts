@@ -46,6 +46,11 @@ export interface Appointment {
   source: AppointmentSource;
   location?: string;
   practitioner?: string;
+  /**
+   * Set when a sandbox test visit was moved forward for a demo. `start` is
+   * then the demo date, and this keeps the date Epic actually returned.
+   */
+  demo?: { originalStart: string };
 }
 
 export interface CarePlan {
