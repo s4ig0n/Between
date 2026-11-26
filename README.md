@@ -101,18 +101,26 @@ PKCE (S256), as a public client with no client secret. Endpoints are read from
 the sandbox's `.well-known/smart-configuration`. The access token is kept only
 in SecureStore and is never logged.
 
-### 1. Register the redirect URI in Epic
+### 1. Register the redirect URI and publish the hand-off page
 
-Epic only sends the patient back to a redirect URI registered on the app at
-fhir.epic.com, and it must match exactly. Add both of these:
+Epic sends the patient back to
+`https://s4ig0n.github.io/Between/auth/epic`. That is a small page in this
+repo (`docs/auth/epic.html`, served by GitHub Pages) that passes the sign-in
+code on to the app. Android's browser would not hand Epic's sign-in straight
+to an `exp://` or `between://` link (the login just looped back to MyChart),
+but it loads https pages fine.
 
-- **Expo Go:** `exp://<your computer's Wi-Fi IP>:8081/--/auth/epic`, for
-  example `exp://192.168.1.11:8081/--/auth/epic`. The Between card shows
-  the exact value in development under "Redirect URI to register in Epic".
-  It changes if your computer's IP changes.
-- **Dev builds later:** `between://auth/epic`
+- Register `https://s4ig0n.github.io/Between/auth/epic` as a redirect URI on
+  the Epic app at fhir.epic.com. Changes there can take a while to apply.
+- Turn on GitHub Pages for this repo: **Settings → Pages → Build and
+  deployment → Deploy from a branch → `main` / `/docs`**.
 
-Changes to an Epic sandbox app can take a while to take effect.
+How the hand-off works: the app puts its own return address (an `exp://…`
+link in Expo Go, `between://auth/epic` in an installed build) hex-encoded at
+the end of the OAuth `state`. The page sends the browser there with the same
+`code` and `state`, or shows a **Return to Between** button if Android wants a
+tap first. It only ever forwards to app addresses ending in `auth/epic`, and
+the code is useless without the PKCE secret that stays on the phone.
 
 If Expo picks the wrong network adapter (common on Windows with WSL or
 VirtualBox installed), force your Wi-Fi IP before starting:
