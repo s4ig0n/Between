@@ -199,6 +199,22 @@ and background colors meet WCAG AA contrast, text scales with the system font
 size, and every check-off is announced to screen readers as a checkbox with its
 state.
 
+- **Keyboard:** everything works without a mouse. Tab moves through the
+  buttons and check-offs in reading order, Enter activates, Space toggles a
+  check-off, and a thick white-and-navy focus ring shows where you are (web).
+- **Any screen size:** one column that fills a phone, and stays a readable
+  640-point column on tablets and desktop browsers. Button pairs stack on
+  narrow phones instead of squeezing their text.
+- **Voice control:** button labels start with their visible words, so "tap
+  Mark done" works.
+- **Checked with Lighthouse** (accessibility): Today screen 100 on mobile and
+  desktop settings, sign-in hand-off page 100. Re-run it against the web
+  build:
+
+```powershell
+npx lighthouse http://localhost:8081 --only-categories=accessibility --view
+```
+
 ## Privacy
 
 See [PRIVACY.md](PRIVACY.md).
