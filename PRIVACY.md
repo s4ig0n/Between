@@ -33,6 +33,12 @@ been reviewed by a lawyer.
   Development uses Epic's published **test patients only**, and the app
   refuses to connect to anything but Epic's public sandbox.
   - Sign-in happens on Epic's own page. The app never sees the password.
+  - After sign-in, Epic sends the browser to a static page on GitHub Pages
+    (`s4ig0n.github.io/Between/auth/epic`) that passes a one-time sign-in code
+    back to the app. The page runs only in the phone's browser, stores
+    nothing, sends nothing anywhere, and removes the code from the address
+    bar. GitHub, as the host, sees the request like any web visit. The code
+    can't be used without a secret that never leaves the phone.
   - The access token is stored only in the phone's secure storage (Keychain on
     iOS, Keystore-backed storage on Android), is not backed up to other
     devices, and is never logged.
