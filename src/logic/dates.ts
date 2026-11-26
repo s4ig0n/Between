@@ -50,6 +50,11 @@ export function formatLongDate(d: Date): string {
   return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
 }
 
+/** "Jun 1, 2023" */
+export function formatMediumDate(d: Date): string {
+  return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 /** "Wed" */
 export function formatShortWeekday(d: Date): string {
   return WEEKDAYS[d.getDay()].slice(0, 3);

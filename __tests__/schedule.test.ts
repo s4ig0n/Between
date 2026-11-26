@@ -8,7 +8,7 @@ import {
   occurrenceId,
   upcomingAppointments,
 } from '../src/logic/schedule';
-import { formatDuration, formatLongDate, formatTime } from '../src/logic/dates';
+import { formatDuration, formatLongDate, formatMediumDate, formatTime } from '../src/logic/dates';
 
 // Tuesday, October 6 2026, local time
 const TUE = new Date(2026, 9, 6);
@@ -139,5 +139,6 @@ describe('formatting', () => {
     expect(formatDuration(45)).toBe('45 minutes');
     expect(formatDuration(90)).toBe('1 hour 30 minutes');
     expect(formatDuration(60)).toBe('1 hour');
+    expect(formatMediumDate(new Date(2023, 5, 1))).toBe('Jun 1, 2023');
   });
 });
