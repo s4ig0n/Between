@@ -1,28 +1,34 @@
 import * as AuthSession from 'expo-auth-session';
 import { isRunningInExpoGo } from 'expo';
 import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 
 import { EPIC_SCOPES, type EpicConfig } from './config';
 import { fetchSmartEndpoints } from './discovery';
-import { APP_SCHEME_REDIRECT, EPIC_REDIRECT_PATH, expoGoRedirectUri } from './redirect';
+import {
+  APP_SCHEME_REDIRECT,
+  EPIC_HTTPS_REDIRECT,
+  EPIC_REDIRECT_PATH,
+  expoGoRedirectUri,
+  makeHandoffState,
+} from './redirect';
 import { sessionFromTokenResponse, type EpicSession } from './session';
 import { saveSession } from './sessionStore';
 
 WebBrowser.maybeCompleteAuthSession();
 
-/**
- * Where Epic sends the patient back after sign-in. In Expo Go this is an
- * exp:// address that includes the computer's network address; in a dev build
- * it is between://auth/epic. Either way it must be registered exactly in the
- * Epic app settings.
- *
- * Expo Go is detected explicitly: on Android, makeRedirectUri was observed to
- * return between://auth/epic inside Expo Go, which Expo Go cannot receive, so
- * the sign-in never returned to the app. The scheme check in expoGoRedirectUri
- * keeps a non-exp:// address from being used here.
- */
+/** The redirect URI registered in Epic and sent in the sign-in request. */
 export function epicRedirectUri(): string {
+  return EPIC_HTTPS_REDIRECT;
+}
+
+/**
+ * Where the hand-off page sends the browser so the app gets the code: an
+ * exp:// link in Expo Go (which can't receive between:// links), or
+ * between://auth/epic in an installed build.
+ */
+export function appReturnUri(): string {
   // Expo Go on Android (SDK 58) reports its execution environment as "bare",
   // so ask Expo directly whether this is Expo Go.
   if (isRunningInExpoGo()) {
@@ -40,8 +46,9 @@ export type SignInResult = { type: 'success'; session: EpicSession } | { type: '
 
 /**
  * SMART on FHIR standalone launch: authorization code with PKCE, public
- * client, no client secret. The token is saved to SecureStore and never
- * logged.
+ * client, no client secret. Epic redirects to the https hand-off page, which
+ * passes the code on to the app's own link. The token is saved to SecureStore
+ * and never logged.
  */
 export async function signInWithEpic(config: EpicConfig): Promise<SignInResult> {
   const endpoints = await fetchSmartEndpoints(config.fhirBaseUrl);
@@ -50,11 +57,10 @@ export async function signInWithEpic(config: EpicConfig): Promise<SignInResult> 
     tokenEndpoint: endpoints.tokenEndpoint,
   };
   const redirectUri = epicRedirectUri();
+  const returnUri = appReturnUri();
   if (__DEV__) {
-    // Helps match the URI registered in Epic. Contains no secrets.
-    console.log(
-      `Epic sign-in redirect: ${redirectUri} (expoGo=${isRunningInExpoGo()}, env=${Constants.executionEnvironment}, linkingUri=${Constants.linkingUri})`,
-    );
+    // Helps match the addresses registered in Epic. Contains no secrets.
+    console.log(`Epic sign-in: redirect ${redirectUri}, returns to ${returnUri}`);
   }
 
   const request = new AuthSession.AuthRequest({
@@ -63,13 +69,16 @@ export async function signInWithEpic(config: EpicConfig): Promise<SignInResult> 
     scopes: EPIC_SCOPES,
     responseType: AuthSession.ResponseType.Code,
     usePKCE: true,
+    state: makeHandoffState(Crypto.randomUUID().replace(/-/g, ''), returnUri),
     extraParams: { aud: config.fhirBaseUrl },
   });
 
-  const result = await request.promptAsync(discovery);
-  if (result.type === 'cancel' || result.type === 'dismiss' || result.type === 'locked') {
-    return { type: 'cancelled' };
-  }
+  const authUrl = await request.makeAuthUrlAsync(discovery);
+  const browser = await WebBrowser.openAuthSessionAsync(authUrl, returnUri);
+  if (browser.type !== 'success') return { type: 'cancelled' };
+
+  // Checks that the state matches this request before trusting the code.
+  const result = request.parseReturnUrl(browser.url);
   if (result.type !== 'success') {
     const reason = result.type === 'error' ? result.params.error_description || result.params.error : result.type;
     throw new Error(`Epic sign-in failed: ${reason}`);
