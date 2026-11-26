@@ -20,7 +20,7 @@ export function NextUpCard({ occurrence, now, onDone, onLater }: Props) {
   const heading = `Time for your ${occurrence.title.toLowerCase()}`;
 
   return (
-    <View style={styles.card} accessibilityRole="summary">
+    <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.badge}>
           <LogoMark size={20} color={colors.white} />
@@ -37,7 +37,8 @@ export function NextUpCard({ occurrence, now, onDone, onLater }: Props) {
           onPress={onDone}
           style={({ pressed }) => [styles.button, styles.primary, pressed && { backgroundColor: colors.blueDark }]}
           accessibilityRole="button"
-          accessibilityLabel={`Mark ${occurrence.title.toLowerCase()} done`}
+          // Starts with the visible text so voice control ("tap Mark done") works.
+          accessibilityLabel={`Mark done, ${occurrence.title.toLowerCase()}`}
         >
           <Text style={[styles.buttonText, { color: colors.white }]}>Mark done</Text>
         </Pressable>
@@ -45,7 +46,7 @@ export function NextUpCard({ occurrence, now, onDone, onLater }: Props) {
           onPress={onLater}
           style={({ pressed }) => [styles.button, styles.secondary, pressed && { backgroundColor: colors.line }]}
           accessibilityRole="button"
-          accessibilityLabel="Remind me in 1 hour"
+          accessibilityLabel="In 1 hour, remind me later"
         >
           <Text style={[styles.buttonText, { color: colors.navy }]}>In 1 hour</Text>
         </Pressable>
@@ -69,9 +70,11 @@ const styles = StyleSheet.create({
   due: { fontSize: type.small, color: colors.muted },
   heading: { fontSize: type.heading, fontWeight: '800', color: colors.navy, marginTop: 4 },
   detail: { fontSize: type.small, color: colors.muted, lineHeight: 25 },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  // Side by side when there's room; stacked full-width on narrow phones.
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
   button: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 140,
     minHeight: TAP,
     borderRadius: radius.button,
     alignItems: 'center',
